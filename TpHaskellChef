@@ -1,0 +1,71 @@
+module Library where
+import PdePreludat 
+data Participante = UnParticipante {
+    nombre :: String,
+    trucos :: [Truco],
+    especialidad :: Plato
+} deriving (Show)
+
+data Plato = UnPlato {
+    dificultad :: Int,
+    nombrePlato :: String,
+    componentes :: [Componente]
+} deriving (Show, Eq)
+
+data Componente = UnComponente {
+    nombreIngrediente :: String,
+    pesoEnGramos :: Number -- (Ingrediente, Gramos)
+} deriving (Show, Eq)
+type Truco = Plato -> Plato
+
+agregarComponente :: Componente -> Plato -> Plato
+agregarComponente (UnComponente unNombreDelComponente unPesoDelComponente) (UnPlato unaDificultad unNombreDelPlato unosComponentes) = UnPlato unaDificultad unNombreDelPlato ([UnComponente unNombreDelComponente unPesoDelComponente] ++ unosComponentes)
+
+endulzar :: Number -> Truco
+endulzar unaCantidad unPlato = agregarComponente (UnComponente "Azucar" unaCantidad) unPlato
+
+salar :: Number -> Truco
+salar unaCantidad unPlato = agregarComponente (UnComponente "Sal" unaCantidad) unPlato
+
+darSabor :: Number -> Number -> Truco
+darSabor pesoSal pesoAzucar unPlato = endulzar pesoAzucar . salar pesoSal $ unPlato
+
+duplicarComponente :: Componente -> Componente
+duplicarComponente (UnComponente unNombreDelComponente unPesoDelComponente) = UnComponente unNombreDelComponente (unPesoDelComponente * 2)
+
+duplicarPorcion :: Truco
+duplicarPorcion (UnPlato unaDificultad unNombreDelPlato unosComponentes) = UnPlato unaDificultad unNombreDelPlato (map duplicarComponente unosComponentes)
+
+esComponentePesado :: Componente -> Bool
+esComponentePesado unComponente = pesoEnGramos unComponente >= 10
+
+esComplejo :: Plato -> Bool
+esComplejo unPlato = length (componentes unPlato) > 5 && dificultad unPlato > 7
+
+simplificar :: Truco
+simplificar unPlato
+| esComplejo unPlato = unPlato { dificultad = 5, componentes = filter esComponentePesado (componentes unPlato) }
+| otherwise = unPlato
+verComponente :: String -> Componente -> Bool
+verComponente unNombre unComponente = unNombre == nombreIngrediente unComponente
+
+esNoVegano :: Componente -> Bool
+esNoVegano unComponente = verComponente "Carne" unComponente || verComponente "Huevo" unComponente || verComponente "Leche" unComponente || verComponente "Crema" unComponente || verComponente "Queso" unComponente
+
+esVegano :: Plato -> Bool
+esVegano unPlato = not (any esNoVegano (componentes unPlato))
+
+esSinTacc :: Plato -> Bool
+esSinTacc unPlato = not (any (verComponente "Harina") (componentes unPlato))
+
+tieneMuchaSal :: Componente -> Bool
+tieneMuchaSal unComponente = verComponente "Sal" unComponente && pesoEnGramos unComponente > 2
+
+noAptoHipertension :: Plato -> Bool
+noAptoHipertension unPlato = any tieneMuchaSal (componentes unPlato)
+--PARTE B
+pepeRoccino :: Participante
+pepeRoccino = UnParticipante "Pepe Roccino" [darleSabor 2 5, simplificar, duplicarPorcion] platoPepe
+
+platoPepe :: Plato
+platoPepe = UnPlato 8 "Plato de Pepe" [UnComponente "Sal" 3, UnComponente "Azucar" 5, UnComponente "Harina" 15, UnComponente "Carne" 20, UnComponente "Huevo" 10, UnComponente "Leche" 8]
