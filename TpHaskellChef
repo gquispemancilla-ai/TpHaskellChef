@@ -63,9 +63,30 @@ tieneMuchaSal unComponente = verComponente "Sal" unComponente && pesoEnGramos un
 
 noAptoHipertension :: Plato -> Bool
 noAptoHipertension unPlato = any tieneMuchaSal (componentes unPlato)
+
 --PARTE B
 pepeRoccino :: Participante
 pepeRoccino = UnParticipante "Pepe Roccino" [darleSabor 2 5, simplificar, duplicarPorcion] platoPepe
 
 platoPepe :: Plato
 platoPepe = UnPlato 8 "Plato de Pepe" [UnComponente "Sal" 3, UnComponente "Azucar" 5, UnComponente "Harina" 15, UnComponente "Carne" 20, UnComponente "Huevo" 10, UnComponente "Leche" 8]
+
+--Parte C
+
+aplicarTruco :: Plato -> Truco -> Plato
+aplicarTruco unPlato unTruco = unTruco unPlato
+
+cocinar :: Participante -> Plato
+cocinar unParticipante = foldl aplicarTruco (especialidad unParticipante) (trucos unParticipante)
+
+pesoTotal :: Plato -> Number
+pesoTotal unPlato = sum (map pesoEnGramos (componentes unPlato))
+
+esMejorQue :: Plato -> Plato -> Bool
+esMejorQue unPlato otroPlato = pesoTotal unPlato < pesoTotal otroPlato
+--Usar Recursividad
+participanteEstrella :: [Participante] -> Participante
+participanteEstrella [unParticipante] = unParticipante
+participanteEstrella (unParticipante:otroParticipante:restoParticipantes)
+| esMejorQue (cocinar unParticipante) (cocinar otroParticipante) = participanteEstrella (unParticipante:restoParticipantes)
+| otherwise = participanteEstrella (otroParticipante:restoParticipantes)
